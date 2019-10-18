@@ -56,7 +56,7 @@ html += "會員 email：" + response.email;
 target.innerHTML = html;
      if (fblogin_done == 0)
     {
-    window.open("https://imokok1012.github.io/TOP100_NEW5/");
+    //window.open("https://imokok1012.github.io/TOP100_NEW5/");
     }
     fblogin_done = 1;
 });
@@ -90,5 +90,12 @@ js.id = id;
 js.src = "https://connect.facebook.net/zh_TW/sdk.js";
 fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));
+ function myFunction() {
+ if(fblogin_done) 
+ {
+     window.open("https://imokok1012.github.io/TOP100_NEW5/");
+ }
+}
+ 
     </script>
 </html>
