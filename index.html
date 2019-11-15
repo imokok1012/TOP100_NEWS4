@@ -3,12 +3,15 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>臉書千大熱門即時新聞標題(24-48hr內)</title>
-        <meta name="description" content="An interactive getting started guide for Brackets.">
+        <title>臉書千大熱門即時新聞標題(48hr內)</title>        
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+        <style>
+            
+        </style>
     </head>
-    
     <body>
-          <div
+         <div
           class="fb-like"
           data-share="true"
           data-width="450"
@@ -18,15 +21,143 @@
             
 
 目前狀態：<span id="FB_STATUS_1"></span></div>
-        <div><button onclick="myFunction()">詳細圖表統計</button></div>
+        <div><button onclick="myFunction()">新聞熱門關鍵字詳細圖表統計</button></div>
         <p style="color:#FF0000" id="demo"></p>
-        <div><h2>臉書千大熱門即時新聞標題(24-48hr內)</h2></div>
-        <div>
-            <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRc1TdFRIg1e-wVWKejJ6P-zjQKEH6kucdt02wKB3TutqTW5y6dkQRvtC7BOI86jX8STyjjoldgj6Cg/pubhtml?gid=1378704835&amp;single=true&amp;widget=true&amp;headers=false" width="1800px" height="600px" style="display: block; margin: auto;"></iframe>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+        <div class="container-fluid">
+            <div class="row mt-1">
+                <div class="col">
+                    <h3 align="center">臉書千大熱門即時新聞標題(48hr內)</h3>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col"></div>
+                <div class="col-8">
+                    <div class="col-12">
+                        <h5>Table Title</h5>
+                    </div>
+                    <table class="table" id="gl_table" style="width:100%">
+                        <thead class="thead-dark" align="center"></thead>
+                        <tbody align="center"></tbody>
+                    </table>
+                </div>
+                <div class="col"></div>
+            </div>
+            <div class="row mt-3">
+                <div class="col"></div>
+                <div class="col-8">
+                    <div class="col-12">
+                        <h3>新聞熱門關鍵字 文字雲分析</h3>
+                    </div>
+                    <div name="cloud-placement">
+                        <div id="tag" style="border: 1px solid #000; height: 320px; width: 525px;"></div>
+                    </div>
+                </div>
+                <div class="col"></div>
+            </div>
+            
         </div>
-    </body>
-    <script>
-          window.fbAsyncInit = function() {
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/7.3.0/firebase-app.js"></script>
+        <!-- TODO: Add SDKs for Firebase products that you want to use
+             https://firebase.google.com/docs/web/setup#available-libraries -->
+        <script src="https://www.gstatic.com/firebasejs/7.3.0/firebase-database.js"></script>
+
+        <script>
+            // Your web app's Firebase configuration
+            var firebaseConfig = {
+                apiKey: "AIzaSyCjNXmiNGQSz-359ho_4OS12icrtpYIc50",
+                authDomain: "bdpy-practice.firebaseapp.com",
+                databaseURL: "https://bdpy-practice.firebaseio.com",
+                projectId: "bdpy-practice",
+                storageBucket: "bdpy-practice.appspot.com",
+                messagingSenderId: "975273811700",
+                appId: "1:975273811700:web:a3064275c33c6aafb188a1",
+                measurementId: "G-C8WCZB6E7H"
+            };
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            
+            const db = firebase.database();
+            const table_coll = db.ref('top1k');
+            const cloud_coll = db.ref('test_data');
+            
+            //cloud setting
+            
+            //取得d3顏色
+            var fill = d3.scaleOrdinal(d3.schemeCategory10);            
+            //取得呈現處的寬、高
+            var w = parseInt(d3.select("#tag").style("width"), 10);
+            var h = parseInt(d3.select("#tag").style("height"), 10);
+            
+            function draw(words) {
+                d3.select("#tag").append("svg")
+                    .attr("width", w)
+                    .attr("height", h)
+                    .append("g")
+                    .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")")
+                    .selectAll("text")
+                    .data(words)
+                    .enter().append("text")
+                    .style("font-size", function (d) {
+                        return d.size + "px";
+                }).style("font-family", "Microsoft JhengHei")
+                    .style("cursor", 'pointer')
+                    .style("fill", function (d, i) {
+                    return fill(i);
+                }).attr("text-anchor", "middle")
+                    .attr("transform", function (d) {
+                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                }).text(function (d) {
+                    return d.text;
+                }).on("click", function (d) {
+                });
+            }
+            
+            
+            $(document).ready( function () {
+                table = $('#gl_table').DataTable({
+                    "paging": false,
+                    "scrollY": 400,
+                    "searching": false,
+                    "order": [[ 1, 'desc' ]],
+                    "info": false,
+                    "columns": [
+                        { "data":"title","title": "標題","width": "40%","orderable": false },
+                        { "data":"comment_count","title": "留言數","width": "10%" },
+                        { "data":"share_count","title": "分享數","width": "10%" },
+                        { "data":"source","title": "來源","width": "9%" },
+                        { "data":"post_time","title": "時間","width": "14%" },
+                        { "data":"url","title": "連結","width": "7%","render":function(data, type, row){return '<a href="' + data + '" target="_blank">link</span>'  },"orderable": false },
+                    ]
+                });
+                table_coll.on('value', function(snapshot) {
+                    console.log(snapshot.val())
+                    table.clear();
+                    table.rows.add(snapshot.val()).draw();
+                    
+                });
+                cloud_coll.on('value', function(snapshot){
+                    d = snapshot.val()
+                    $('#tag').html("");
+                    d3.layout.cloud().size([w, h])
+                        .words(d)
+                        .padding(2)
+                        .rotate(function () {
+                        return ~~(Math.random() * 2) * 90;
+                    }).rotate(function () {
+                        return 0;
+                    }).fontSize(function (d) {
+                        return d.size;
+                    }).on("end", draw).start();
+                });
+            } );
+            
+            
+         window.fbAsyncInit = function() {
 FB.init({
 appId: '317778922095844', // 填入 FB APP ID
 cookie: true,
@@ -104,7 +235,7 @@ fjs.parentNode.insertBefore(js, fjs);
  {
      document.getElementById("demo").innerHTML = "請登入 FB，方能看到圖表統計";
  }   
-}
- 
-    </script>
+}   
+        </script>
+    </body>
 </html>
