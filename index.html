@@ -82,7 +82,7 @@
             firebase.initializeApp(firebaseConfig);
             
             const db = firebase.database();
-            const table_coll = db.ref('top1k');
+            const table_coll = db.ref('top_1000');
             const cloud_coll = db.ref('test_data');
             
             //cloud setting
@@ -126,12 +126,13 @@
                     "order": [[ 1, 'desc' ]],
                     "info": false,
                     "columns": [
-                        { "data":"title","title": "標題","width": "40%","orderable": false },
+                        { "data":"title","title": "標題","width": "30%","orderable": false },
                         { "data":"comment_count","title": "留言數","width": "10%" },
                         { "data":"share_count","title": "分享數","width": "10%" },
                         { "data":"source","title": "來源","width": "9%" },
                         { "data":"post_time","title": "時間","width": "14%" },
                         { "data":"url","title": "連結","width": "7%","render":function(data, type, row){return '<a href="' + data + '" target="_blank">link</span>'  },"orderable": false },
+                        { "data":"keyword","title": "<span style=\"font-size:15px;\">熱門關鍵字</span>","width": "10%" },
                     ]
                 });
                 table_coll.on('value', function(snapshot) {
@@ -164,23 +165,19 @@ cookie: true,
 xfbml: true,
 version: 'v3.2'
 });
-
 FB.getLoginStatus(function(response) {
 statusChangeCallback(response);
 });
 };
-
 var fblogin_done = 0;
 // 處理各種登入身份
 function statusChangeCallback(response) {
 console.log(response);
 var target = document.getElementById("FB_STATUS_1"),
 html = "";
-
 // 登入 FB 且已加入會員
 if (response.status === 'connected') {
 html = "已登入 FB，並加入 即時熱門文章 應用程式<br/>";
-
 FB.api('/me?fields=id,name,email', function(response) {
 console.log(response);
 if(response.name)
@@ -196,26 +193,22 @@ if(response.name)
     fblogin_done = 1;
 });
 }
-
 // 登入 FB, 未偵測到加入會員
 else if (response.status === "not_authorized") {
 target.innerHTML = "已登入 FB，但未加入 即時熱門文章 應用程式";
     fblogin_done = 0;
 }
-
 // 未登入 FB
 else {
 target.innerHTML = "未登入 FB";
     fblogin_done = 0;
 }
 }
-
 function checkLoginState() {
 FB.getLoginStatus(function(response) {
 statusChangeCallback(response);
 });
 }
-
 // 載入 FB SDK
 (function(d, s, id) {
 var js, fjs = d.getElementsByTagName(s)[0];
